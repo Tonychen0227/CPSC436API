@@ -111,7 +111,8 @@ module.exports.setPWOneUser = function(id, password) {
       assert.equal(null, err);
       const usersCollection = db.collection('users')
       usersCollection.updateOne({_id: id}, {$set: {
-        "password": password
+        "password": password,
+        "ResetToken": "LoremIpsumDolorSitAmet"
       }}, function(err, docs) {
         if (err != null) {
           reject(err)
