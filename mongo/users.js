@@ -1,6 +1,8 @@
 var MongoClient = require('mongodb').MongoClient
   , assert = require('assert');
 
+var shortid = require('shortid');
+
 // Connection URL
 var url = 'mongodb://admin:admin@cpsc436-basketball-shard-00-00-kbwxu.mongodb.net:27017,cpsc436-basketball-shard-00-01-kbwxu.mongodb.net:27017,cpsc436-basketball-shard-00-02-kbwxu.mongodb.net:27017/test?ssl=true&replicaSet=CPSC436-Basketball-shard-0&authSource=admin&retryWrites=true&w=majority';
 
@@ -80,6 +82,57 @@ module.exports.validateOneUser = function(id) {
         }
         console.log("Found the following records");
         console.log(docs)
+        resolve(docs)
+      });
+    });
+  });
+}
+
+module.exports.resetPWOneUser = function(id) {
+  return new Promise(function(resolve, reject) {
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+      const usersCollection = db.collection('users')
+      usersCollection.updateOne({_id: id}, {$set: {
+        "password": ""
+      }}, function(err, docs) {
+        if (err != null) {
+          reject(err)
+        }
+        resolve(docs)
+      });
+    });
+  });
+}
+
+module.exports.setPWOneUser = function(id, password) {
+  return new Promise(function(resolve, reject) {
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+      const usersCollection = db.collection('users')
+      usersCollection.updateOne({_id: id}, {$set: {
+        "password": password
+      }}, function(err, docs) {
+        if (err != null) {
+          reject(err)
+        }
+        resolve(docs)
+      });
+    });
+  });
+}
+
+module.exports.updateResetTokenOneUser = function(id) {
+  return new Promise(function(resolve, reject) {
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+      const usersCollection = db.collection('users')
+      usersCollection.updateOne({_id: id}, {$set: {
+        "ResetToken": shortid.generate()
+      }}, function(err, docs) {
+        if (err != null) {
+          reject(err)
+        }
         resolve(docs)
       });
     });

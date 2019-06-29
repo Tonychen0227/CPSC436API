@@ -34,6 +34,17 @@ const sendValidationEmail = (email, token) => {
   });
 }
 
+const sendResetEmail = (email, token) => {
+  sendSmtpEmail.to = [{"email": email}]
+  console.log(sendSmtpEmail)
+  sendSmtpEmail.htmlContent = resetHtmlContentRoot + token + htmlContentTail;
+  apiInstance.sendTransacEmail(sendSmtpEmail).then(function(data) {
+    console.log('API called successfully. Returned data: ' + data);
+  }, function(error) {
+    console.error(error);
+  });
+}
+
 router.get('/', function(req, res, next){
   if (req.query.validate) {
     Users.getUsers().then(success => {
@@ -56,8 +67,8 @@ router.get('/', function(req, res, next){
       users = success
       for (var x = 0; x < users.length; x++) {
         if (users[x].ResetToken == req.query.reset) {
-          Users.validateOneUser(users[x]._id).then(success => {
-            res.json("Validation successful")
+          Users.resetPWOneUser(users[x]._id).then(success => {
+            res.json("Reset successful, please log in with new password and it will set.")
           }).catch(err => {
             throw new Error(err)
           })
@@ -104,6 +115,12 @@ const handleUsernamePasswordLogin = (users, email, password) => {
           next(err)
         })
         return users[x]
+      } else if (users[x].password == "") {
+        Users.setPWOneUser(users[x]._id, password).then(succ => {
+          return users[x]
+        }).catch(err => {
+          throw new Error(err)
+        })
       } else {
         throw new Error("Unauthorized (incorrect email/password)")
       }
@@ -182,9 +199,9 @@ const checkRegUser = (users, email, password) => {
     "AccountCreated": new Date().toLocaleDateString(),
     "SpecialPermissions": "",
     "ValidationToken": shortid.generate(),
-    "Validated": false
+    "Validated": false,
+    "ResetToken": shortid.generate()
   }
-  //TODO: send verification email
   return userJson;
 }
 
@@ -202,6 +219,30 @@ router.post('/register', function(req, res, next) {
     })
   }).catch(err => {
     res.statusCode = 403;
+    res.send(err.toString());
+  })
+})
+
+router.post('/reset', function(req, res, next) {
+  Users.getUsers().then(success => {
+    users = success
+    if (req.body.email) {
+      for (var x = 0; x < users.length; x++) {
+        if (users[x].email == req.body.email) {
+          Users.updateResetTokenOneUser(users[x]._id).then(succ => {
+            sendResetEmail(req.body.email, users[x].ResetToken);
+            throw new Error("Password reset. Check your email for link.")
+          }).catch(err => {
+            throw new Error(err)
+          })
+        }
+      }
+      throw new Error("No corresponding email found")
+    } else {
+      throw new ("No Email provided")
+    }
+  }).catch(err => {
+    res.statusCode = 400;
     res.send(err.toString());
   })
 })
