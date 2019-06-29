@@ -1,3 +1,4 @@
 module.exports = {
-  secret: 'wethenorthhh'
+  secret: 'wethenorthhh',
+  isProd: true
 };
