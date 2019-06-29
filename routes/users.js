@@ -230,7 +230,7 @@ router.post('/reset', function(req, res, next) {
       for (var x = 0; x < users.length; x++) {
         if (users[x].email == req.body.email) {
           Users.updateResetTokenOneUser(users[x]._id).then(succ => {
-            sendResetEmail(req.body.email, users[x].ResetToken);
+            sendResetEmail(req.body.email, succ);
             throw new Error("Password reset. Check your email for link.")
           }).catch(err => {
             throw new Error(err)

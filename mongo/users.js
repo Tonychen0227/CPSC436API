@@ -127,13 +127,14 @@ module.exports.updateResetTokenOneUser = function(id) {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
       const usersCollection = db.collection('users')
+      let token = shortid.generate()
       usersCollection.updateOne({_id: id}, {$set: {
-        "ResetToken": shortid.generate()
+        "ResetToken": token
       }}, function(err, docs) {
         if (err != null) {
           reject(err)
         }
-        resolve(docs)
+        resolve(token)
       });
     });
   });
