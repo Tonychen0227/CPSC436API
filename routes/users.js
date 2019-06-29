@@ -14,7 +14,9 @@ var apiInstance = new sendinblue.SMTPApi();
 
 var sendSmtpEmail = new sendinblue.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
-var htmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate="
+var validateHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate="
+
+var resetHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset="
 
 var htmlContentTail = "' target='_blank'>Click here! This is not scam I swear </a>"
 
@@ -49,7 +51,24 @@ router.get('/', function(req, res, next){
       res.statusCode = 401;
       res.send(err.toString());
     })
-  } else {
+  } else if (req.query.reset) {
+    Users.getUsers().then(success => {
+      users = success
+      for (var x = 0; x < users.length; x++) {
+        if (users[x].ResetToken == req.query.reset) {
+          Users.validateOneUser(users[x]._id).then(success => {
+            res.json("Validation successful")
+          }).catch(err => {
+            throw new Error(err)
+          })
+        }
+      }
+    }).catch(err => {
+      res.statusCode = 401;
+      res.send(err.toString());
+    })
+  }
+  else {
     res.status = 401;
     res.send("Unauthorized")
   }
