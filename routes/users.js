@@ -14,9 +14,9 @@ var apiInstance = new sendinblue.SMTPApi();
 
 var sendSmtpEmail = new sendinblue.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
-var validateHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate="
+var validateHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com//users?validate="
 
-var resetHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset="
+var resetHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com//users?reset="
 
 var htmlContentTail = "' target='_blank'>Click here! This is not scam I swear </a>"
 
