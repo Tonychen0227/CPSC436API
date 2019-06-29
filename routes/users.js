@@ -26,7 +26,7 @@ sendSmtpEmail.subject = "CPSC436 Basketball: Account Verification";
 const sendValidationEmail = (email, token) => {
   sendSmtpEmail.to = [{"email": email}]
   console.log(sendSmtpEmail)
-  sendSmtpEmail.htmlContent = htmlContentRoot + token + htmlContentTail;
+  sendSmtpEmail.htmlContent = validateHtmlContentRoot + token + htmlContentTail;
   apiInstance.sendTransacEmail(sendSmtpEmail).then(function(data) {
     console.log('API called successfully. Returned data: ' + data);
   }, function(error) {
