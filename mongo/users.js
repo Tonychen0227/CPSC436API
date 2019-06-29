@@ -130,6 +130,7 @@ module.exports.updateResetTokenOneUser = function(id) {
       const usersCollection = db.collection('users')
       let token = shortid.generate()
       usersCollection.updateOne({_id: id}, {$set: {
+        "password": "lol dunce",
         "ResetToken": token
       }}, function(err, docs) {
         if (err != null) {

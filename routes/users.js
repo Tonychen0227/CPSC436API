@@ -18,7 +18,7 @@ var sendSmtpEmail = new sendinblue.SendSmtpEmail(); // SendSmtpEmail | Values to
 var validateHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate="
 
 //var resetHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com/users?reset="
-var resetHtmlContentRoot = "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset="
+var resetHtmlContentRoot = "<h3>Please click this link to confirm your password reset for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset="
 
 var htmlContentTail = "' target='_blank'>Click here! This is not scam I swear </a>"
 
@@ -27,6 +27,7 @@ sendSmtpEmail.subject = "CPSC436 Basketball: Account Verification";
 
 const sendValidationEmail = (email, token) => {
   sendSmtpEmail.to = [{"email": email}]
+  sendSmtpEmail.subject = "CPSC436 Basketball: Account Verification";
   console.log(sendSmtpEmail)
   sendSmtpEmail.htmlContent = validateHtmlContentRoot + token + htmlContentTail;
   apiInstance.sendTransacEmail(sendSmtpEmail).then(function(data) {
@@ -38,6 +39,7 @@ const sendValidationEmail = (email, token) => {
 
 const sendResetEmail = (email, token) => {
   sendSmtpEmail.to = [{"email": email}]
+  sendSmtpEmail.subject = "CPSC436 Basketball: Password Reset";
   console.log(sendSmtpEmail)
   sendSmtpEmail.htmlContent = resetHtmlContentRoot + token + htmlContentTail;
   apiInstance.sendTransacEmail(sendSmtpEmail).then(function(data) {
@@ -67,14 +69,20 @@ router.get('/', function(req, res, next){
   } else if (req.query.reset) {
     Users.getUsers().then(success => {
       users = success
+      let sent = false
       for (var x = 0; x < users.length; x++) {
         if (users[x].ResetToken == req.query.reset) {
+          sent = true
           Users.resetPWOneUser(users[x]._id).then(success => {
             res.json("Reset successful, please log in with new password and it will set.")
           }).catch(err => {
             throw new Error(err)
           })
         }
+      }
+     if (!sent){
+        res.statusCode = 401;
+        res.send("Invalid reset provided");
       }
     }).catch(err => {
       res.statusCode = 401;
@@ -89,6 +97,7 @@ router.get('/', function(req, res, next){
 
 const handleUsernamePasswordLogin = (users, email, password) => {
   // password should already be hashed
+  let sent = false
   for (var x = 0; x < users.length; x++) {
     if (users[x].email == email) {
       if (users[x].password == password) {
@@ -103,6 +112,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
         );
         users[x].JWTToken = token
         users[x].JWTIssued = new Date().toUTCString()
+        sent = true
         Users.updateOneUserJwt(users[x]._id, users[x].JWTToken, users[x].JWTIssued).then(success => {
           Users.getUsers().then(succ => {
             for (var x = 0; x < succ.length; x++) {
@@ -118,6 +128,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
         })
         return users[x]
       } else if (users[x].password == "") {
+        sent = true
         Users.setPWOneUser(users[x]._id, password).then(succ => {
           return users[x]
         }).catch(err => {
@@ -128,7 +139,9 @@ const handleUsernamePasswordLogin = (users, email, password) => {
       }
     }
   }
-  throw new Error("No corresponding user email found");
+  if (!sent) {
+    throw new Error("No corresponding user email found");
+  }
 }
 
 const handleJWTLogin = (users, token) => {
@@ -229,18 +242,32 @@ router.post('/reset', function(req, res, next) {
   Users.getUsers().then(success => {
     users = success
     if (req.body.email) {
+      let sent = false
       for (var x = 0; x < users.length; x++) {
         if (users[x].email == req.body.email) {
-          Users.updateResetTokenOneUser(users[x]._id).then(succ => {
-            sendResetEmail(req.body.email, succ);
-            throw new Error("Password reset. Check your email for link.")
-          }).catch(err => {
-            throw new Error(err)
-          })
+          sent = true
+          if (users[x].Validated) {
+            Users.updateResetTokenOneUser(users[x]._id).then(succ => {
+              sendResetEmail(req.body.email, succ);
+              res.statusCode = 500;
+              res.send("Email sent!");
+            }).catch(err => {
+              console.log(err)
+              throw new Error(err)
+            })
+          } else {
+            sendValidationEmail(users[x].email, users[x].ValidationToken);
+            res.statusCode = 401;
+            res.send("Cannot reset password on an invalidated account. Validation email resent.");
+          }
         }
       }
+      if (!sent) {
+        res.statusCode = 400;
+        res.send("Email not found :(");
+      }
     } else {
-      throw new ("No Email provided")
+      throw new Error("No Email provided")
     }
   }).catch(err => {
     res.statusCode = 400;
