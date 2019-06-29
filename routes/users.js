@@ -237,7 +237,6 @@ router.post('/reset', function(req, res, next) {
           })
         }
       }
-      throw new Error("No corresponding email found")
     } else {
       throw new ("No Email provided")
     }
