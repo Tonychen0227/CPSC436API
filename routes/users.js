@@ -8,6 +8,7 @@ const sendinblue = require('sib-api-v3-sdk');
 const axios = require('axios');
 
 var FBApi = "https://graph.facebook.com/v3.3/"
+//FB Api to get an image: http://graph.facebook.com/v3.3/2864136996961088/picture?height=300
 
 var mailClient = sendinblue.ApiClient.instance;
 var apiKey = mailClient.authentications['api-key'];
