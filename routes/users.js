@@ -6,9 +6,13 @@ const Users = require('../mongo/users');
 const config = require('../config.js');
 const sendinblue = require('sib-api-v3-sdk');
 const axios = require('axios');
+const fetch = require('fetch-base64');
+
+var defaultImage = "https://www.myinstants.com/media/instants_images/1340305905201.png"
 
 var FBApi = "https://graph.facebook.com/v3.3/"
-//FB Api to get an image: http://graph.facebook.com/v3.3/2864136996961088/picture?height=300
+
+var FBApiPictureSuffix = "/picture?height=500&redirect=0"
 
 var mailClient = sendinblue.ApiClient.instance;
 var apiKey = mailClient.authentications['api-key'];
@@ -160,7 +164,7 @@ const handleJWTLogin = (users, token) => {
       if (new Date() <= date.setDate(date.getDate() + 1)) {
         return users[x]
       } else {
-        throw new Error ("Token expired")
+        throw new Error("Token expired")
       }
     }
   }
@@ -209,6 +213,7 @@ const checkRegUser = (users, email, password) => {
     }
   );
   let newDate = new Date()
+  
   var userJson = {
     "Email": email,
     "Password": password,
@@ -220,23 +225,28 @@ const checkRegUser = (users, email, password) => {
     "ValidationToken": shortid.generate(),
     "Validated": false,
     "ResetToken": shortid.generate(),
-    "DisplayName": "I love JavaScript XD"
+    "DisplayName": "I love JavaScript XD",
+    "ProfileBase64": ""
   }
-  return userJson;
+  return userJson
 }
 
 router.post('/register', function(req, res, next) {
   Users.getUsers().then(success => {
     users = success
     var userJSON = checkRegUser(users, req.body.email, req.body.password);
-    Users.insertUser(userJSON).then(success => {
-      console.log(success.ops[0]);
-      sendValidationEmail(success.ops[0].email, success.ops[0].ValidationToken);
-      throw new Error("User registered. Please verify email.")
-    }).catch(err => {
-      res.statusCode = 500;
-      res.send(err.toString());
-    })
+    userJSON.DisplayName = req.body.displayName != '' ? req.body.displayName : userJSON.DisplayName
+    //fetch.remote(defaultImage).then((data) => {
+      //userJSON.ProfileBase64 = data[1].split(',')[1]
+      Users.insertUser(userJSON).then(success => {
+        console.log(success.ops[0]);
+        sendValidationEmail(success.ops[0].email, success.ops[0].ValidationToken);
+        throw new Error("User registered. Please verify email.")
+      }).catch(err => {
+        res.statusCode = 500;
+        res.send(err.toString());
+      })
+    //}).catch((reason) => {throw new Error(reason)});
   }).catch(err => {
     res.statusCode = 403;
     res.send(err.toString());
@@ -293,7 +303,6 @@ router.post('/fbLogin', function(req, res, next) {
           res.send("You already have an account with same email.")
           return
         } else if (users[x].Email == req.body.email) {
-          console.log("Ha found one")
           res.json(users[x])
           return
         }
@@ -309,14 +318,25 @@ router.post('/fbLogin', function(req, res, next) {
         "ValidationToken": shortid.generate(),
         "Validated": true,
         "ResetToken": shortid.generate(),
-        "DisplayName": "I love JavaScript XD"
+        "DisplayName": "I love JavaScript XD",
+        "ProfileBase64": ""
       }
       axios.get(FBApi + req.body.id + '/?access_token=' + req.body.token)
       .then(response => {
         newUser.DisplayName = response.data.name
-        Users.insertUser(newUser).then(succ => {
-          res.json(newUser)
-        }).catch(err => {
+        axios.get(FBApi + req.body.id + FBApiPictureSuffix)
+        .then(response => {
+          console.log(response.data.data.url)
+          fetch.remote(response.data.data.url).then((data) => {
+            newUser.ProfileBase64 = data[1].split(',')[1]
+            Users.insertUser(newUser).then(succ => {
+              res.json(newUser)
+            }).catch(err => {
+              throw new Error(err)
+            })
+          }).catch((reason) => {throw new Error(reason)});
+        })
+        .catch(err => {
           throw new Error(err)
         })
       })
