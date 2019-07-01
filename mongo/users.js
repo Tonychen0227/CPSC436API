@@ -94,7 +94,7 @@ module.exports.resetPWOneUser = function(id) {
       assert.equal(null, err);
       const usersCollection = db.collection('users')
       usersCollection.updateOne({_id: id}, {$set: {
-        "password": ""
+        "Password": ""
       }}, function(err, docs) {
         if (err != null) {
           reject(err)
@@ -111,7 +111,7 @@ module.exports.setPWOneUser = function(id, password) {
       assert.equal(null, err);
       const usersCollection = db.collection('users')
       usersCollection.updateOne({_id: id}, {$set: {
-        "password": password,
+        "Password": password,
         "ResetToken": "LoremIpsumDolorSitAmet"
       }}, function(err, docs) {
         if (err != null) {
@@ -130,7 +130,7 @@ module.exports.updateResetTokenOneUser = function(id) {
       const usersCollection = db.collection('users')
       let token = shortid.generate()
       usersCollection.updateOne({_id: id}, {$set: {
-        "password": "lol dunce",
+        "Password": "lol dunce",
         "ResetToken": token
       }}, function(err, docs) {
         if (err != null) {

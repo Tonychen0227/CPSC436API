@@ -5,6 +5,9 @@ let jwt = require('jsonwebtoken');
 const Users = require('../mongo/users');
 const config = require('../config.js');
 const sendinblue = require('sib-api-v3-sdk');
+const axios = require('axios');
+
+var FBApi = "https://graph.facebook.com/v3.3/"
 
 var mailClient = sendinblue.ApiClient.instance;
 var apiKey = mailClient.authentications['api-key'];
@@ -71,7 +74,7 @@ router.get('/', function(req, res, next){
       users = success
       let sent = false
       for (var x = 0; x < users.length; x++) {
-        if (users[x].ResetToken == req.query.reset) {
+        if (users[x].ResetToken == req.query.reset && users[x].Password != "Facebook") {
           sent = true
           Users.resetPWOneUser(users[x]._id).then(success => {
             res.json("Reset successful, please log in with new password and it will set.")
@@ -99,10 +102,10 @@ const handleUsernamePasswordLogin = (users, email, password) => {
   // password should already be hashed
   let sent = false
   for (var x = 0; x < users.length; x++) {
-    if (users[x].email == email) {
-      if (users[x].password == password) {
+    if (users[x].Email == email) {
+      if (users[x].Password == password) {
         if (!users[x].Validated) {
-          sendValidationEmail(users[x].email, users[x].ValidationToken)
+          sendValidationEmail(users[x].Email, users[x].ValidationToken)
           throw new Error("Verification email resent")
         }
         let token = jwt.sign({email: email},
@@ -127,7 +130,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
           next(err)
         })
         return users[x]
-      } else if (users[x].password == "") {
+      } else if (users[x].Password == "") {
         sent = true
         Users.setPWOneUser(users[x]._id, password).then(succ => {
           return users[x]
@@ -135,7 +138,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
           throw new Error(err)
         })
       } else {
-        throw new Error("Unauthorized (incorrect email/password)")
+        throw new Error("Unauthorized (incorrect email/password). Is this a Facebook account?")
       }
     }
   }
@@ -195,7 +198,7 @@ const checkRegUser = (users, email, password) => {
     throw new Error("Password is too short")
   }
   for (var x = 0; x < users.length; x++) {
-    if (users[x]["email"] == email) {
+    if (users[x].Email == email) {
       throw new Error("Email is taken")
     }
   }
@@ -206,8 +209,8 @@ const checkRegUser = (users, email, password) => {
   );
   let newDate = new Date()
   var userJson = {
-    "email": email,
-    "password": password,
+    "Email": email,
+    "Password": password,
     "JWTToken": token,
     "JWTIssued": newDate.toUTCString(),
     "FavoriteTeam": "",
@@ -215,7 +218,8 @@ const checkRegUser = (users, email, password) => {
     "SpecialPermissions": "",
     "ValidationToken": shortid.generate(),
     "Validated": false,
-    "ResetToken": shortid.generate()
+    "ResetToken": shortid.generate(),
+    "DisplayName": "I love JavaScript XD"
   }
   return userJson;
 }
@@ -244,7 +248,7 @@ router.post('/reset', function(req, res, next) {
     if (req.body.email) {
       let sent = false
       for (var x = 0; x < users.length; x++) {
-        if (users[x].email == req.body.email) {
+        if (users[x].Email == req.body.email && users[x].Password != "Facebook") {
           sent = true
           if (users[x].Validated) {
             Users.updateResetTokenOneUser(users[x]._id).then(succ => {
@@ -256,7 +260,7 @@ router.post('/reset', function(req, res, next) {
               throw new Error(err)
             })
           } else {
-            sendValidationEmail(users[x].email, users[x].ValidationToken);
+            sendValidationEmail(users[x].Email, users[x].ValidationToken);
             res.statusCode = 401;
             res.send("Cannot reset password on an invalidated account. Validation email resent.");
           }
@@ -264,7 +268,7 @@ router.post('/reset', function(req, res, next) {
       }
       if (!sent) {
         res.statusCode = 400;
-        res.send("Email not found :(");
+        res.send("Email not found :( Or account is Facebook");
       }
     } else {
       throw new Error("No Email provided")
@@ -273,6 +277,56 @@ router.post('/reset', function(req, res, next) {
     res.statusCode = 400;
     res.send(err.toString());
   })
+})
+
+router.post('/fbLogin', function(req, res, next) {
+  if (!req.body.email || !req.body.id || !req.body.token) {
+    res.statusCode = 400;
+    res.send("You must include email, id, token")
+  } else {
+    Users.getUsers().then(success => {
+      users = success
+      for (var x = 0; x < users.length; x++) {
+        if (users[x].Email == req.body.email && users[x].Password != "Facebook") {
+          res.statusCode = 500;
+          res.send("You already have an account with same email.")
+          return
+        } else if (users[x].Email == req.body.email) {
+          console.log("Ha found one")
+          res.json(users[x])
+          return
+        }
+      }
+      let newUser = {
+        "Email": req.body.email,
+        "Password": "Facebook",
+        "JWTToken": "No token for facebook users",
+        "JWTIssued": new Date().toUTCString(),
+        "FavoriteTeam": "",
+        "AccountCreated": new Date().toLocaleDateString(),
+        "SpecialPermissions": "",
+        "ValidationToken": shortid.generate(),
+        "Validated": true,
+        "ResetToken": shortid.generate(),
+        "DisplayName": "I love JavaScript XD"
+      }
+      axios.get(FBApi + req.body.id + '/?access_token=' + req.body.token)
+      .then(response => {
+        newUser.DisplayName = response.data.name
+        Users.insertUser(newUser).then(succ => {
+          res.json(newUser)
+        }).catch(err => {
+          throw new Error(err)
+        })
+      })
+      .catch(err => {
+        throw new Error(err)
+      })
+    }).catch(err => {
+      res.statusCode = 401;
+      res.send(err.toString());
+    })
+  }
 })
 
 module.exports = router;
