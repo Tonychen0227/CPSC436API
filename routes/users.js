@@ -304,7 +304,7 @@ router.post('/fbLogin', function(req, res, next) {
         "JWTIssued": new Date().toUTCString(),
         "FavoriteTeam": "",
         "AccountCreated": new Date().toLocaleDateString(),
-        "SpecialPermissions": "",
+        "SpecialPermissions": {"FBID":  req.body.id},
         "ValidationToken": shortid.generate(),
         "Validated": true,
         "ResetToken": shortid.generate(),
