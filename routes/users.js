@@ -247,7 +247,7 @@ router.post('/register', function(req, res, next) {
         res.statusCode = 500;
         res.send(err.toString());
       })
-    //}).catch((reason) => {throw new Error(reason)});
+    }).catch((reason) => {throw new Error(reason)});
   }).catch(err => {
     res.statusCode = 403;
     res.send(err.toString());
