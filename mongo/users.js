@@ -63,8 +63,6 @@ module.exports.updateOneUserJwt = function(id, jwt, jwtIssued) {
         if (err != null) {
           reject(err)
         }
-        console.log("Found the following records");
-        console.log(docs)
         resolve(docs)
       });
     });
@@ -82,8 +80,6 @@ module.exports.validateOneUser = function(id) {
         if (err != null) {
           reject(err)
         }
-        console.log("Found the following records");
-        console.log(docs)
         resolve(docs)
       });
     });
