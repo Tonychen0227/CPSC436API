@@ -328,20 +328,19 @@ router.post('/fbLogin', function(req, res, next) {
         .then(response => {
           console.log(response.data.data.url)
           axios.get(response.data.data.url, {'Content-Type': 'image/jpeg'}).then(res => {
-            console.log(res);
+            fetch.local(res).then((data) => {
+              console.log(data)
+              newUser.ProfileBase64 = data[1].split(',')[1]
+              Users.insertUser(newUser).then(succ => {
+                res.json(newUser)
+              }).catch(err => {
+                throw new Error(err)
+              })
+            }).catch((reason) => {throw new Error(reason)});
           }).catch(err => {
-            console.log(err);
+            throw new Error(err);
           })
-          /*
-          fetch.remote({ url: response.data.data.url, headers: { 'Content-Type': 'image/jpeg' }}).then((data) => {
-            newUser.ProfileBase64 = data[1].split(',')[1]
-            Users.insertUser(newUser).then(succ => {
-              res.json(newUser)
-            }).catch(err => {
-              throw new Error(err)
-            })
-          }).catch((reason) => {throw new Error(reason)});
-          */
+          
         })
         .catch(err => {
           throw new Error(err)
