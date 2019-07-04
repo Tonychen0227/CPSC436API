@@ -325,7 +325,7 @@ router.post('/fbLogin', function(req, res, next) {
         newUser.DisplayName = response.data.name
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
-          console.log(response.data.url)
+          console.log(response.data.data.url)
           fetch.remote(response.data.data.url).then((data) => {
             newUser.ProfileBase64 = data[1].split(',')[1]
             Users.insertUser(newUser).then(succ => {
