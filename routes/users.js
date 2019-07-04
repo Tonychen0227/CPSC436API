@@ -7,6 +7,7 @@ const config = require('../config.js');
 const sendinblue = require('sib-api-v3-sdk');
 const axios = require('axios');
 const fetch = require('fetch-base64');
+var fs = require('fs');
 
 var defaultImage = "https://www.myinstants.com/media/instants_images/1340305905201.png"
 
@@ -328,15 +329,15 @@ router.post('/fbLogin', function(req, res, next) {
         .then(response => {
           console.log(response.data.data.url)
           axios.get(response.data.data.url, {'Content-Type': 'image/jpeg'}).then(result => {
-            fetch.local(result.data).then((data) => {
-              console.log(data)
-              newUser.ProfileBase64 = data[1].split(',')[1]
-              Users.insertUser(newUser).then(succ => {
-                res.json(newUser)
-              }).catch(err => {
-                throw new Error(err)
-              })
-            }).catch((reason) => {throw new Error(reason)});
+            let bitmap = fs.readFileSync(result.data);
+            let data = new Buffer(bitmap).toString('base64');
+            console.log(data)
+            newUser.ProfileBase64 = data;
+            Users.insertUser(newUser).then(succ => {
+              res.json(newUser)
+            }).catch(err => {
+              throw new Error(err)
+            })
           }).catch(err => {
             throw new Error(err);
           })
