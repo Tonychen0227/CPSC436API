@@ -327,6 +327,12 @@ router.post('/fbLogin', function(req, res, next) {
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
           console.log(response.data.data.url)
+          axios.get(response.data.data.url, {'Content-Type': 'image/jpeg'}).then(res => {
+            console.log(res);
+          }).catch(err => {
+            console.log(err);
+          })
+          /*
           fetch.remote({ url: response.data.data.url, headers: { 'Content-Type': 'image/jpeg' }}).then((data) => {
             newUser.ProfileBase64 = data[1].split(',')[1]
             Users.insertUser(newUser).then(succ => {
@@ -335,6 +341,7 @@ router.post('/fbLogin', function(req, res, next) {
               throw new Error(err)
             })
           }).catch((reason) => {throw new Error(reason)});
+          */
         })
         .catch(err => {
           throw new Error(err)
