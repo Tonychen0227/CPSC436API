@@ -239,9 +239,8 @@ router.post('/register', function(req, res, next) {
     fetch.remote(defaultImage).then((data) => {
       userJSON.ProfileBase64 = data[1].split(',')[1]
       Users.insertUser(userJSON).then(success => {
-        console.log("registering");
-        sendValidationEmail(success.ops[0].email, success.ops[0].ValidationToken);
-        console.log("email sent");
+        console.log(success);
+        //sendValidationEmail(success.ops[0].email, success.ops[0].ValidationToken);
         throw new Error("User registered. Please verify email.")
       }).catch(err => {
         res.statusCode = 500;
