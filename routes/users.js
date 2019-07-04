@@ -236,8 +236,8 @@ router.post('/register', function(req, res, next) {
     users = success
     var userJSON = checkRegUser(users, req.body.email, req.body.password);
     userJSON.DisplayName = req.body.displayName != '' ? req.body.displayName : userJSON.DisplayName
-    //fetch.remote(defaultImage).then((data) => {
-      //userJSON.ProfileBase64 = data[1].split(',')[1]
+    fetch.remote(defaultImage).then((data) => {
+      userJSON.ProfileBase64 = data[1].split(',')[1]
       Users.insertUser(userJSON).then(success => {
         console.log("registering");
         sendValidationEmail(success.ops[0].email, success.ops[0].ValidationToken);
