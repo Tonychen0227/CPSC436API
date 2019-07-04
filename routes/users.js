@@ -323,7 +323,7 @@ router.post('/fbLogin', function(req, res, next) {
       axios.get(FBApi + req.body.id + '/?access_token=' + req.body.token)
       .then(response => {
         newUser.DisplayName = response.data.name
-        console.log(response.body)
+        console.log(response.data)
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
           console.log(response.data.data.url)
