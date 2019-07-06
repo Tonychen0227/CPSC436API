@@ -26,7 +26,7 @@ var sendSmtpEmail = new sendinblue.SendSmtpEmail(); // SendSmtpEmail | Values to
 var validateHtmlContentRoot = config.isProd ? "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com/users?validate="
 : "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate="
 
-var resetHtmlContentRoot = config.isProd ? "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com/users?reset="
+var resetHtmlContentRoot = config.isProd ? "<h3>Please click this link to confirm your password reset for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com/users?reset="
 : "<h3>Please click this link to confirm your password reset for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset="
 
 var htmlContentTail = "' target='_blank'>Click here! This is not scam I swear </a>"
