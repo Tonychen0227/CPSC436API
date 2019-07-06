@@ -327,20 +327,24 @@ router.post('/fbLogin', function(req, res, next) {
         console.log(response.data)
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
+          /*
           console.log(response.data.data.url)
           axios.get(response.data.data.url, {'Content-Type': 'image/jpeg'}).then(result => {
             let bitmap = fs.readFileSync(result.data);
             let data = new Buffer(bitmap).toString('base64');
             console.log(data)
             newUser.ProfileBase64 = data;
+            */
             Users.insertUser(newUser).then(succ => {
               res.json(newUser)
             }).catch(err => {
               throw new Error(err)
             })
+            /*
           }).catch(err => {
             throw new Error(err);
           })
+          */
           
         })
         .catch(err => {
