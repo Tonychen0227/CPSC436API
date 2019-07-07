@@ -195,12 +195,12 @@ router.post('/login', function(req, res, next) {
   Users.getUsers().then(async success => {
     users = success;
     if (req.body.email && req.body.password) {
-      var result = await handleUsernamePasswordLogin(users, req.body.email, req.body.password);
+      let result = await handleUsernamePasswordLogin(users, req.body.email, req.body.password);
       console.log("API RESULT" + result);
       res.json(result);
     }
     else if (req.body.jwt) {
-      var result = handleJWTLogin(users, req.body.jwt);
+      let result = handleJWTLogin(users, req.body.jwt);
       res.json(result);
     } else {
       throw new Error("No authentication supplied");
@@ -215,8 +215,8 @@ const checkRegUser = (users, email, password) => {
   if (!email || !password) {
     throw new Error("Forgot email or password");
   }
-  var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  var match = re.test(email);
+  let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  let match = re.test(email);
   if (!match) {
     throw new Error("Invalid email");
   }
@@ -236,7 +236,7 @@ const checkRegUser = (users, email, password) => {
   );
   let newDate = new Date();
   
-  var userJson = {
+  let userJson = {
     "Email": email,
     "Password": password,
     "JWTToken": token,
@@ -256,7 +256,7 @@ const checkRegUser = (users, email, password) => {
 router.post('/register', function(req, res, next) {
   Users.getUsers().then(success => {
     users = success;
-    var userJSON = checkRegUser(users, req.body.email, req.body.password);
+    let userJSON = checkRegUser(users, req.body.email, req.body.password);
     userJSON.DisplayName = req.body.displayName != '' ? req.body.displayName : userJSON.DisplayName;
     fetch.remote(defaultImage).then((data) => {
       userJSON.ProfileBase64 = data[1].split(',')[1];
