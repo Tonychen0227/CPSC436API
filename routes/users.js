@@ -325,10 +325,10 @@ router.post('/fbLogin', function(req, res, next) {
       if (user) {
         res.statusCode = 500;
         res.send("You already have an account with same email.");
-        return
+        return;
       } else if (userEmail) {
         res.json(user);
-        return
+        return;
       }
       let newUser = {
         "Email": req.body.email,
