@@ -13,9 +13,9 @@ MongoClient.connect(url, function(err, db) {
   assert.equal(null, err);
   console.log("Connected successfully to server");
 
-  database = db
+  database = db;
 
-  usersCollection = db.collection('users')
+  usersCollection = db.collection('users');
 });
 
 module.exports = {}
@@ -25,12 +25,12 @@ module.exports.getUsers = function() {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
 
-      const usersCollection = db.collection('users')
+      const usersCollection = db.collection('users');
       usersCollection.find({}).toArray(function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
-        resolve(docs)
+        resolve(docs);
       });
     });
   });
@@ -40,12 +40,12 @@ module.exports.insertUser = function(user) {
   return new Promise(function(resolve, reject) {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
-      const usersCollection = db.collection('users')
+      const usersCollection = db.collection('users');
       usersCollection.insert(user, function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
-        resolve(docs)
+        resolve(docs);
       });
     });
   });
@@ -55,15 +55,15 @@ module.exports.updateOneUserJwt = function(id, jwt, jwtIssued) {
   return new Promise(function(resolve, reject) {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
-      const usersCollection = db.collection('users')
+      const usersCollection = db.collection('users');
       usersCollection.updateOne({_id: id}, {$set: {
         "JWTToken": jwt,
         "JWTIssued": jwtIssued
       }}, function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
-        resolve(docs)
+        resolve(docs);
       });
     });
   });
@@ -73,14 +73,14 @@ module.exports.validateOneUser = function(id) {
   return new Promise(function(resolve, reject) {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
-      const usersCollection = db.collection('users')
+      const usersCollection = db.collection('users');
       usersCollection.updateOne({_id: id}, {$set: {
         "Validated": true
       }}, function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
-        resolve(docs)
+        resolve(docs);
       });
     });
   });
@@ -95,9 +95,9 @@ module.exports.resetPWOneUser = function(id) {
         "Password": ""
       }}, function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
-        resolve(docs)
+        resolve(docs);
       });
     });
   });
@@ -107,19 +107,19 @@ module.exports.setPWOneUser = function(id, password) {
   return new Promise(function(resolve, reject) {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
-      const usersCollection = db.collection('users')
+      const usersCollection = db.collection('users');
       usersCollection.updateOne({_id: id}, {$set: {
         "Password": password,
         "ResetToken": "LoremIpsumDolorSitAmet"
       }}, function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
         usersCollection.find({_id: id}).toArray(function(err, docs) {
           if (err != null) {
-            reject(err)
+            reject(err);
           }
-          resolve(docs)
+          resolve(docs);
         });
       });
     });
@@ -130,16 +130,16 @@ module.exports.updateResetTokenOneUser = function(id) {
   return new Promise(function(resolve, reject) {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
-      const usersCollection = db.collection('users')
-      let token = shortid.generate()
+      const usersCollection = db.collection('users');
+      let token = shortid.generate();
       usersCollection.updateOne({_id: id}, {$set: {
         "Password": "lol dunce",
         "ResetToken": token
       }}, function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
         }
-        resolve(token)
+        resolve(token);
       });
     });
   });

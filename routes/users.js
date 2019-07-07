@@ -9,11 +9,11 @@ const axios = require('axios');
 const fetch = require('fetch-base64');
 var fs = require('fs');
 
-var defaultImage = "https://www.myinstants.com/media/instants_images/1340305905201.png"
+var defaultImage = "https://www.myinstants.com/media/instants_images/1340305905201.png";
 
-var FBApi = "https://graph.facebook.com/v3.3/"
+var FBApi = "https://graph.facebook.com/v3.3/";
 
-var FBApiPictureSuffix = "/picture?height=500&redirect=0"
+var FBApiPictureSuffix = "/picture?height=500&redirect=0";
 
 var mailClient = sendinblue.ApiClient.instance;
 var apiKey = mailClient.authentications['api-key'];
@@ -24,20 +24,20 @@ var apiInstance = new sendinblue.SMTPApi();
 var sendSmtpEmail = new sendinblue.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
 var validateHtmlContentRoot = config.isProd ? "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com/users?validate="
-: "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate="
+: "<h3>Please click this link to confirm your verification for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?validate=";
 
 var resetHtmlContentRoot = config.isProd ? "<h3>Please click this link to confirm your password reset for GGPanda!</h3> <br/> <a href='http://cpsc436basketballapi.herokuapp.com/users?reset="
-: "<h3>Please click this link to confirm your password reset for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset="
+: "<h3>Please click this link to confirm your password reset for GGPanda!</h3> <br/> <a href='http://localhost:3001/users?reset=";
 
-var htmlContentTail = "' target='_blank'>Click here! This is not scam I swear </a>"
+var htmlContentTail = "' target='_blank'>Click here! This is not scam I swear </a>";
 
 sendSmtpEmail.sender = { "email":"tony.chen@outlook.com", "name":"GGPanda Basketball"};
 sendSmtpEmail.subject = "CPSC436 Basketball: Account Verification";
 
 const sendValidationEmail = (email, token) => {
-  sendSmtpEmail.to = [{"email": email}]
+  sendSmtpEmail.to = [{"email": email}];
   sendSmtpEmail.subject = "CPSC436 Basketball: Account Verification";
-  console.log(sendSmtpEmail)
+  console.log(sendSmtpEmail);
   sendSmtpEmail.htmlContent = validateHtmlContentRoot + token + htmlContentTail;
   apiInstance.sendTransacEmail(sendSmtpEmail).then(function(data) {
     console.log('API called successfully. Returned data: ' + data);
@@ -47,9 +47,9 @@ const sendValidationEmail = (email, token) => {
 }
 
 const sendResetEmail = (email, token) => {
-  sendSmtpEmail.to = [{"email": email}]
+  sendSmtpEmail.to = [{"email": email}];
   sendSmtpEmail.subject = "CPSC436 Basketball: Password Reset";
-  console.log(sendSmtpEmail)
+  console.log(sendSmtpEmail);
   sendSmtpEmail.htmlContent = resetHtmlContentRoot + token + htmlContentTail;
   apiInstance.sendTransacEmail(sendSmtpEmail).then(function(data) {
     console.log('API called successfully. Returned data: ' + data);
@@ -61,15 +61,15 @@ const sendResetEmail = (email, token) => {
 router.get('/', function(req, res, next){
   if (req.query.validate) {
     Users.getUsers().then(success => {
-      users = success
+      users = success;
       let user = users.filter((function(item)  {
         return item.ValidationToken == req.query.validate;
       }))
       if (user) {
         Users.validateOneUser(user._id).then(success => {
-          res.json("Validation successful")
+          res.json("Validation successful");
         }).catch(err => {
-          throw new Error(err)
+          throw new Error(err);
         })
       }
     }).catch(err => {
@@ -78,8 +78,8 @@ router.get('/', function(req, res, next){
     })
   } else if (req.query.reset) {
     Users.getUsers().then(success => {
-      users = success
-      let sent = false
+      users = success;
+      let sent = false;
       let user = users.filter(function(item) {
         return item.ResetToken == req.query.reset && item.Password != "Facebook";
       })
@@ -87,7 +87,7 @@ router.get('/', function(req, res, next){
         Users.resetPWOneUser(user._id).then(success => {
           res.json("Reset successful, please log in with new password and it will set.")
         }).catch(err => {
-          throw new Error(err)
+          throw new Error(err);
         })
       } else {
         res.statusCode = 401;
@@ -104,109 +104,106 @@ router.get('/', function(req, res, next){
   }
   else {
     res.status = 401;
-    res.send("Unauthorized")
+    res.send("Unauthorized");
   }
 });
 
 const handleUsernamePasswordLogin = (users, email, password) => {
   // password should already be hashed
-  let sent = false
   let user = users.filter(function(item) {
     return item.Email == email;
   })
   if (user) {
     if (user.Password == password) {
       if (!user.Validated) {
-        sendValidationEmail(user.Email, user.ValidationToken)
-        throw new Error("Verification email resent")
+        sendValidationEmail(user.Email, user.ValidationToken);
+        throw new Error("Verification email resent");
       }
       let token = jwt.sign({email: email},
         config.secret,
         { expiresIn: '24h' // expires in 24 hours
         }
       );
-      user.JWTToken = token
-      user.JWTIssued = new Date().toUTCString()
-      sent = true
+      user.JWTToken = token;
+      user.JWTIssued = new Date().toUTCString();
       Users.updateOneUserJwt(user._id, user.JWTToken, user.JWTIssued).then(success => {
         Users.getUsers().then(succ => {
           let user = succ.filter(function(item) {
             return item.Email == email;
           })
           if (user) {
-            console.log("RETURNING", user)
-            return user
+            console.log("RETURNING", user);
+            return user;
           } else {
-            throw new Error("???")
+            throw new Error("???");
           }
         }).catch(err => {
-          throw new Error(err)
+          throw new Error(err);
         })
       }).catch(err => {
-        next(err)
+        next(err);
       })
-      return user
+      return user;
     } else if (user.Password == "") {
-      sent = true
       Users.setPWOneUser(user._id, password).then(succ1 => {
         Users.getUsers().then(succ => {
           let user = succ.filter(function(item) {
             return item.Email == email;
           })
           if (user) {
-            console.log("RETURNING", user)
-            return user
+            console.log("RETURNING", user);
+            return user;
           } else {
-            throw new Error("???")
+            throw new Error("???");
           }
         }).catch(err => {
-          throw new Error(err)
+          throw new Error(err);
         })
       }).catch(err => {
-        throw new Error(err)
+        throw new Error(err);
       })
     } else {
-      throw new Error("Unauthorized (incorrect email/password). Is this a Facebook account?")
+      throw new Error("Unauthorized (incorrect email/password). Is this a Facebook account?");
     }
   } else {
-    throw new Error("No corres. email found")
+    throw new Error("No corres. email found");
   }
 }
 
 const handleJWTLogin = (users, token) => {
   jwt.verify(token, config.secret, (err, decoded) => {
     if (err) {
-      throw new Error("Invalid token")
+      throw new Error("Invalid token");
     }
   });
   let user = users.filter(function(item) {
     return item.JWTToken == token;
   }) 
   if (user) {
-    let date = new Date(user.JWTIssued)
+    let date = new Date(user.JWTIssued);
     if (new Date() <= date.setDate(date.getDate() + 1)) {
-      return user
+      return user;
     } else {
-      throw new Error("Token expired")
+      throw new Error("Token expired");
     }
   } else {
-    throw new Error("No corresponding JWT found")
+    throw new Error("No corresponding JWT found");
   }
 }
 
 router.post('/login', function(req, res, next) {
   Users.getUsers().then(async success => {
-    users = success
+    users = success;
     if (req.body.email && req.body.password) {
-      var result = await handleUsernamePasswordLogin(users, req.body.email, req.body.password)
-      console.log("API RESULT" + result)
-      res.json(result)
+      var result = await handleUsernamePasswordLogin(users, req.body.email, req.body.password);
+      console.log("API RESULT" + result);
+      res.json(result);
     }
     else if (req.body.jwt) {
-      var result = handleJWTLogin(users, req.body.jwt)
-      res.json(result)
+      var result = handleJWTLogin(users, req.body.jwt);
+      res.json(result);
     } else {
-      throw new Error("No authentication supplied")
+      throw new Error("No authentication supplied");
     }
   }).catch(err => {
     res.statusCode = 401;
@@ -216,28 +213,28 @@ router.post('/login', function(req, res, next) {
 
 const checkRegUser = (users, email, password) => {
   if (!email || !password) {
-    throw new Error("Forgot email or password")
+    throw new Error("Forgot email or password");
   }
   var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  var match = re.test(email)
+  var match = re.test(email);
   if (!match) {
-    throw new Error("Invalid email")
+    throw new Error("Invalid email");
   }
   if (password.length < 8) {
-    throw new Error("Password is too short")
+    throw new Error("Password is too short");
   }
   let user = users.filter(function(item) {
     return item.Email == email;
   })
   if (user) {
-    throw new Error("Email is taken")
+    throw new Error("Email is taken");
   }
   let token = jwt.sign({username: email},
     config.secret,
     { expiresIn: '24h' // expires in 24 hours
     }
   );
-  let newDate = new Date()
+  let newDate = new Date();
   
   var userJson = {
     "Email": email,
@@ -252,20 +249,20 @@ const checkRegUser = (users, email, password) => {
     "ResetToken": shortid.generate(),
     "DisplayName": "I love JavaScript XD",
     "ProfileBase64": ""
-  }
-  return userJson
+  };
+  return userJson;
 }
 
 router.post('/register', function(req, res, next) {
   Users.getUsers().then(success => {
-    users = success
+    users = success;
     var userJSON = checkRegUser(users, req.body.email, req.body.password);
-    userJSON.DisplayName = req.body.displayName != '' ? req.body.displayName : userJSON.DisplayName
+    userJSON.DisplayName = req.body.displayName != '' ? req.body.displayName : userJSON.DisplayName;
     fetch.remote(defaultImage).then((data) => {
-      userJSON.ProfileBase64 = data[1].split(',')[1]
+      userJSON.ProfileBase64 = data[1].split(',')[1];
       Users.insertUser(userJSON).then(success => {
         sendValidationEmail(success.ops[0].Email, success.ops[0].ValidationToken);
-        throw new Error("User registered. Please verify email.")
+        throw new Error("User registered. Please verify email.");
       }).catch(err => {
         res.statusCode = 500;
         res.send(err.toString());
@@ -279,10 +276,10 @@ router.post('/register', function(req, res, next) {
 
 router.post('/reset', function(req, res, next) {
   Users.getUsers().then(success => {
-    users = success
+    users = success;
     if (req.body.email) {
       let user = users.filter(function(item) {
-        item.Email == req.body.email && item.Password != "Facebook"
+        item.Email == req.body.email && item.Password != "Facebook";
       })
       if (user) {
           if (user.Validated) {
@@ -291,8 +288,8 @@ router.post('/reset', function(req, res, next) {
               res.statusCode = 500;
               res.send("Email sent!");
             }).catch(err => {
-              console.log(err)
-              throw new Error(err)
+              console.log(err);
+              throw new Error(err);
             })
           } else {
             sendValidationEmail(user.Email, user.ValidationToken);
@@ -304,7 +301,7 @@ router.post('/reset', function(req, res, next) {
           res.send("Email not found :( Or account is Facebook");
         }
     } else {
-      throw new Error("No Email provided")
+      throw new Error("No Email provided");
     }
   }).catch(err => {
     res.statusCode = 400;
@@ -318,7 +315,7 @@ router.post('/fbLogin', function(req, res, next) {
     res.send("You must include email, id, token")
   } else {
     Users.getUsers().then(success => {
-      users = success
+      users = success;
       let user = users.filter(function(item) {
         return item.Email == req.body.email && item.Password != "Facebook";
       })
@@ -327,10 +324,10 @@ router.post('/fbLogin', function(req, res, next) {
       })
       if (user) {
         res.statusCode = 500;
-        res.send("You already have an account with same email.")
+        res.send("You already have an account with same email.");
         return
       } else if (userEmail) {
-        res.json(user)
+        res.json(user);
         return
       }
       let newUser = {
@@ -346,11 +343,11 @@ router.post('/fbLogin', function(req, res, next) {
         "ResetToken": shortid.generate(),
         "DisplayName": "I love JavaScript XD",
         "ProfileBase64": ""
-      }
+      };
       axios.get(FBApi + req.body.id + '/?access_token=' + req.body.token)
       .then(response => {
-        newUser.DisplayName = response.data.name
-        console.log(response.data)
+        newUser.DisplayName = response.data.name;
+        console.log(response.data);
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
           /*
@@ -362,9 +359,9 @@ router.post('/fbLogin', function(req, res, next) {
             newUser.ProfileBase64 = data;
             */
             Users.insertUser(newUser).then(succ => {
-              res.json(newUser)
+              res.json(newUser);
             }).catch(err => {
-              throw new Error(err)
+              throw new Error(err);
             })
             /*
           }).catch(err => {
@@ -374,11 +371,11 @@ router.post('/fbLogin', function(req, res, next) {
           
         })
         .catch(err => {
-          throw new Error(err)
+          throw new Error(err);
         })
       })
       .catch(err => {
-        throw new Error(err)
+        throw new Error(err);
       })
     }).catch(err => {
       res.statusCode = 401;
