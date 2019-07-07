@@ -65,6 +65,7 @@ router.get('/', function(req, res, next){
       let user = users.filter((function(item)  {
         return item.ValidationToken == req.query.validate;
       }))
+      user = user[0];
       if (user) {
         Users.validateOneUser(user._id).then(success => {
           res.json("Validation successful");
@@ -83,6 +84,7 @@ router.get('/', function(req, res, next){
       let user = users.filter(function(item) {
         return item.ResetToken == req.query.reset && item.Password != "Facebook";
       })
+      user = user[0];
       if (user) {
         Users.resetPWOneUser(user._id).then(success => {
           res.json("Reset successful, please log in with new password and it will set.")
@@ -90,10 +92,6 @@ router.get('/', function(req, res, next){
           throw new Error(err);
         })
       } else {
-        res.statusCode = 401;
-        res.send("Invalid reset provided");
-      }
-     if (!sent){
         res.statusCode = 401;
         res.send("Invalid reset provided");
       }
@@ -113,6 +111,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
   let user = users.filter(function(item) {
     return item.Email == email;
   })
+  user = user[0];
   if (user) {
     if (user.Password == password) {
       if (!user.Validated) {
@@ -131,6 +130,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
           let user = succ.filter(function(item) {
             return item.Email == email;
           })
+          user = user[0];
           if (user) {
             console.log("RETURNING", user);
             return user;
@@ -150,6 +150,7 @@ const handleUsernamePasswordLogin = (users, email, password) => {
           let user = succ.filter(function(item) {
             return item.Email == email;
           })
+          user = user[0];
           if (user) {
             console.log("RETURNING", user);
             return user;
@@ -179,6 +180,7 @@ const handleJWTLogin = (users, token) => {
   let user = users.filter(function(item) {
     return item.JWTToken == token;
   }) 
+  user = user[0];
   if (user) {
     let date = new Date(user.JWTIssued);
     if (new Date() <= date.setDate(date.getDate() + 1)) {
@@ -192,10 +194,10 @@ const handleJWTLogin = (users, token) => {
 }
 
 router.post('/login', function(req, res, next) {
-  Users.getUsers().then(async success => {
+  Users.getUsers().then(success => {
     users = success;
     if (req.body.email && req.body.password) {
-      let result = await handleUsernamePasswordLogin(users, req.body.email, req.body.password);
+      let result = handleUsernamePasswordLogin(users, req.body.email, req.body.password);
       console.log("API RESULT" + result);
       res.json(result);
     }
@@ -226,6 +228,7 @@ const checkRegUser = (users, email, password) => {
   let user = users.filter(function(item) {
     return item.Email == email;
   })
+  user = user[0];
   if (user) {
     throw new Error("Email is taken");
   }
@@ -279,8 +282,11 @@ router.post('/reset', function(req, res, next) {
     users = success;
     if (req.body.email) {
       let user = users.filter(function(item) {
-        item.Email == req.body.email && item.Password != "Facebook";
+        console.log(item.Email == req.body.email);
+        console.log(item.Password != "Facebook");
+        return item.Email == req.body.email && item.Password != "Facebook";
       })
+      user = user[0];
       if (user) {
           if (user.Validated) {
             Users.updateResetTokenOneUser(user._id).then(succ => {
@@ -319,9 +325,12 @@ router.post('/fbLogin', function(req, res, next) {
       let user = users.filter(function(item) {
         return item.Email == req.body.email && item.Password != "Facebook";
       })
+      user = user[0];
       let userEmail = users.filter(function(item) {
         return item.Email == req.body.email;
       })
+      userEmail = userEmail[0];
+      userEmail = userEmail[0];
       if (user) {
         res.statusCode = 500;
         res.send("You already have an account with same email.");
