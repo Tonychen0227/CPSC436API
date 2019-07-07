@@ -62,14 +62,15 @@ router.get('/', function(req, res, next){
   if (req.query.validate) {
     Users.getUsers().then(success => {
       users = success
-      for (var x = 0; x < users.length; x++) {
-        if (users[x].ValidationToken == req.query.validate) {
-          Users.validateOneUser(users[x]._id).then(success => {
-            res.json("Validation successful")
-          }).catch(err => {
-            throw new Error(err)
-          })
-        }
+      let user = users.filter((function(item)  {
+        return item.ValidationToken == req.query.validate;
+      }))
+      if (user) {
+        Users.validateOneUser(user._id).then(success => {
+          res.json("Validation successful")
+        }).catch(err => {
+          throw new Error(err)
+        })
       }
     }).catch(err => {
       res.statusCode = 401;
@@ -79,15 +80,18 @@ router.get('/', function(req, res, next){
     Users.getUsers().then(success => {
       users = success
       let sent = false
-      for (var x = 0; x < users.length; x++) {
-        if (users[x].ResetToken == req.query.reset && users[x].Password != "Facebook") {
-          sent = true
-          Users.resetPWOneUser(users[x]._id).then(success => {
-            res.json("Reset successful, please log in with new password and it will set.")
-          }).catch(err => {
-            throw new Error(err)
-          })
-        }
+      let user = users.filter(function(item) {
+        return item.ResetToken == req.query.reset && item.Password != "Facebook";
+      })
+      if (user) {
+        Users.resetPWOneUser(user._id).then(success => {
+          res.json("Reset successful, please log in with new password and it will set.")
+        }).catch(err => {
+          throw new Error(err)
+        })
+      } else {
+        res.statusCode = 401;
+        res.send("Invalid reset provided");
       }
      if (!sent){
         res.statusCode = 401;
@@ -107,49 +111,65 @@ router.get('/', function(req, res, next){
 const handleUsernamePasswordLogin = (users, email, password) => {
   // password should already be hashed
   let sent = false
-  for (var x = 0; x < users.length; x++) {
-    if (users[x].Email == email) {
-      if (users[x].Password == password) {
-        if (!users[x].Validated) {
-          sendValidationEmail(users[x].Email, users[x].ValidationToken)
-          throw new Error("Verification email resent")
+  let user = users.filter(function(item) {
+    return item.Email == email;
+  })
+  if (user) {
+    if (user.Password == password) {
+      if (!user.Validated) {
+        sendValidationEmail(user.Email, user.ValidationToken)
+        throw new Error("Verification email resent")
+      }
+      let token = jwt.sign({email: email},
+        config.secret,
+        { expiresIn: '24h' // expires in 24 hours
         }
-        let token = jwt.sign({email: email},
-          config.secret,
-          { expiresIn: '24h' // expires in 24 hours
-          }
-        );
-        users[x].JWTToken = token
-        users[x].JWTIssued = new Date().toUTCString()
-        sent = true
-        Users.updateOneUserJwt(users[x]._id, users[x].JWTToken, users[x].JWTIssued).then(success => {
-          Users.getUsers().then(succ => {
-            for (var x = 0; x < succ.length; x++) {
-              if (succ[x].email == email) {
-                return succ[x]
-              }
-            }
-          }).catch(err => {
-            throw new Error(err)
+      );
+      user.JWTToken = token
+      user.JWTIssued = new Date().toUTCString()
+      sent = true
+      Users.updateOneUserJwt(user._id, user.JWTToken, user.JWTIssued).then(success => {
+        Users.getUsers().then(succ => {
+          let user = succ.filter(function(item) {
+            return item.Email == email;
           })
-        }).catch(err => {
-          next(err)
-        })
-        return users[x]
-      } else if (users[x].Password == "") {
-        sent = true
-        Users.setPWOneUser(users[x]._id, password).then(succ => {
-          return users[x]
+          if (user) {
+            console.log("RETURNING", user)
+            return user
+          } else {
+            throw new Error("???")
+          }
         }).catch(err => {
           throw new Error(err)
         })
-      } else {
-        throw new Error("Unauthorized (incorrect email/password). Is this a Facebook account?")
-      }
+      }).catch(err => {
+        next(err)
+      })
+      return user
+    } else if (user.Password == "") {
+      sent = true
+      Users.setPWOneUser(user._id, password).then(succ1 => {
+        Users.getUsers().then(succ => {
+          let user = succ.filter(function(item) {
+            return item.Email == email;
+          })
+          if (user) {
+            console.log("RETURNING", user)
+            return user
+          } else {
+            throw new Error("???")
+          }
+        }).catch(err => {
+          throw new Error(err)
+        })
+      }).catch(err => {
+        throw new Error(err)
+      })
+    } else {
+      throw new Error("Unauthorized (incorrect email/password). Is this a Facebook account?")
     }
-  }
-  if (!sent) {
-    throw new Error("No corresponding user email found");
+  } else {
+    throw new Error("No corres. email found")
   }
 }
 
@@ -159,24 +179,27 @@ const handleJWTLogin = (users, token) => {
       throw new Error("Invalid token")
     }
   });
-  for (var x = 0; x < users.length; x++) {
-    if (users[x].JWTToken == token) {
-      let date = new Date(users[x].JWTIssued)
-      if (new Date() <= date.setDate(date.getDate() + 1)) {
-        return users[x]
-      } else {
-        throw new Error("Token expired")
-      }
+  let user = users.filter(function(item) {
+    return item.JWTToken == token;
+  }) 
+  if (user) {
+    let date = new Date(user.JWTIssued)
+    if (new Date() <= date.setDate(date.getDate() + 1)) {
+      return user
+    } else {
+      throw new Error("Token expired")
     }
+  } else {
+    throw new Error("No corresponding JWT found")
   }
-  throw new Error("No corresponding JWT found")
 }
 
 router.post('/login', function(req, res, next) {
-  Users.getUsers().then(success => {
+  Users.getUsers().then(async success => {
     users = success
     if (req.body.email && req.body.password) {
-      var result = handleUsernamePasswordLogin(users, req.body.email, req.body.password)
+      var result = await handleUsernamePasswordLogin(users, req.body.email, req.body.password)
+      console.log("API RESULT" + result)
       res.json(result)
     }
     else if (req.body.jwt) {
@@ -203,10 +226,11 @@ const checkRegUser = (users, email, password) => {
   if (password.length < 8) {
     throw new Error("Password is too short")
   }
-  for (var x = 0; x < users.length; x++) {
-    if (users[x].Email == email) {
-      throw new Error("Email is taken")
-    }
+  let user = users.filter(function(item) {
+    return item.Email == email;
+  })
+  if (user) {
+    throw new Error("Email is taken")
   }
   let token = jwt.sign({username: email},
     config.secret,
@@ -257,12 +281,12 @@ router.post('/reset', function(req, res, next) {
   Users.getUsers().then(success => {
     users = success
     if (req.body.email) {
-      let sent = false
-      for (var x = 0; x < users.length; x++) {
-        if (users[x].Email == req.body.email && users[x].Password != "Facebook") {
-          sent = true
-          if (users[x].Validated) {
-            Users.updateResetTokenOneUser(users[x]._id).then(succ => {
+      let user = users.filter(function(item) {
+        item.Email == req.body.email && item.Password != "Facebook"
+      })
+      if (user) {
+          if (user.Validated) {
+            Users.updateResetTokenOneUser(user._id).then(succ => {
               sendResetEmail(req.body.email, succ);
               res.statusCode = 500;
               res.send("Email sent!");
@@ -271,16 +295,14 @@ router.post('/reset', function(req, res, next) {
               throw new Error(err)
             })
           } else {
-            sendValidationEmail(users[x].Email, users[x].ValidationToken);
+            sendValidationEmail(user.Email, user.ValidationToken);
             res.statusCode = 401;
             res.send("Cannot reset password on an invalidated account. Validation email resent.");
           }
+      } else {
+          res.statusCode = 400;
+          res.send("Email not found :( Or account is Facebook");
         }
-      }
-      if (!sent) {
-        res.statusCode = 400;
-        res.send("Email not found :( Or account is Facebook");
-      }
     } else {
       throw new Error("No Email provided")
     }
@@ -297,15 +319,19 @@ router.post('/fbLogin', function(req, res, next) {
   } else {
     Users.getUsers().then(success => {
       users = success
-      for (var x = 0; x < users.length; x++) {
-        if (users[x].Email == req.body.email && users[x].Password != "Facebook") {
-          res.statusCode = 500;
-          res.send("You already have an account with same email.")
-          return
-        } else if (users[x].Email == req.body.email) {
-          res.json(users[x])
-          return
-        }
+      let user = users.filter(function(item) {
+        return item.Email == req.body.email && item.Password != "Facebook";
+      })
+      let userEmail = users.filter(function(item) {
+        return item.Email == req.body.email;
+      })
+      if (user) {
+        res.statusCode = 500;
+        res.send("You already have an account with same email.")
+        return
+      } else if (userEmail) {
+        res.json(user)
+        return
       }
       let newUser = {
         "Email": req.body.email,

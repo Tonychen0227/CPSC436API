@@ -115,7 +115,12 @@ module.exports.setPWOneUser = function(id, password) {
         if (err != null) {
           reject(err)
         }
-        resolve(docs)
+        usersCollection.find({_id: id}).toArray(function(err, docs) {
+          if (err != null) {
+            reject(err)
+          }
+          resolve(docs)
+        });
       });
     });
   });
