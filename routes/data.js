@@ -12,6 +12,8 @@ router.get('/getGames', function(req, res, next) {
         res.json(success);
     }).catch(err => {
         console.log(err);
+        res.statusCode = 500;
+        res.send(err.toString());
     });
 });
 
@@ -21,17 +23,20 @@ router.get('/getPlayers', function(req, res, next) {
         res.json(success);
     }).catch(err => {
         console.log(err);
+        res.statusCode = 500;
+        res.send(err.toString());
     });
 });
 
-/*
 router.get('/getTeams', function(req, res, next) {
     Teams.getTeams().then(success => {
         console.log("Get Teams");
         res.json(success);
     }).catch(err => {
         console.log(err);
+        res.statusCode = 500;
+        res.send(err.toString());
     });
-});*/
+});
 
 module.exports = router;
