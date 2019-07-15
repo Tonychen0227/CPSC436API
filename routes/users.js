@@ -348,7 +348,7 @@ router.post('/fbLogin', function(req, res, next) {
         "Password": "Facebook",
         "JWTToken": "No token for facebook users",
         "JWTIssued": new Date().toUTCString(),
-        "FavoriteTeam": "",
+        "FavoriteTeam": "raptors",
         "AccountCreated": new Date().toLocaleDateString(),
         "SpecialPermissions": {"FBID":  req.body.id},
         "ValidationToken": shortid.generate(),
