@@ -335,13 +335,12 @@ router.post('/fbLogin', function(req, res, next) {
         return item.Email == req.body.email;
       })
       userEmail = userEmail[0];
-      userEmail = userEmail[0];
-      if (user) {
+      if (user != undefined) {
         res.statusCode = 500;
         res.send("You already have an account with same email.");
         return;
-      } else if (userEmail) {
-        res.json(user);
+      } else if (userEmail != undefined) {
+        res.json(userEmail);
         return;
       }
       let newUser = {
@@ -364,25 +363,18 @@ router.post('/fbLogin', function(req, res, next) {
         console.log(response.data);
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
-          /*
           console.log(response.data.data.url)
           axios.get(response.data.data.url, {'Content-Type': 'image/jpeg'}).then(result => {
-            let bitmap = fs.readFileSync(result.data);
-            let data = new Buffer(bitmap).toString('base64');
-            console.log(data)
-            newUser.ProfileBase64 = data;
-            */
+            let data = result.data;
+            newUser.ProfileBase64 = Buffer.from(data).toString('base64');
             Users.insertUser(newUser).then(succ => {
               res.json(newUser);
             }).catch(err => {
               throw new Error(err);
             })
-            /*
           }).catch(err => {
             throw new Error(err);
           })
-          */
-          
         })
         .catch(err => {
           throw new Error(err);
