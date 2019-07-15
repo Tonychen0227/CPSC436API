@@ -108,67 +108,67 @@ router.get('/', function(req, res, next){
 
 const handleUsernamePasswordLogin = (users, email, password) => {
   // password should already be hashed
-  let user = users.filter(function(item) {
-    return item.Email == email;
-  })
-  user = user[0];
-  if (user) {
-    if (user.Password == password) {
-      if (!user.Validated) {
-        sendValidationEmail(user.Email, user.ValidationToken);
-        throw new Error("Verification email resent");
-      }
-      let token = jwt.sign({email: email},
-        config.secret,
-        { expiresIn: '24h' // expires in 24 hours
+  return new Promise(function(resolve, reject) {
+    let user = users.filter(function(item) {
+      return item.Email == email;
+    })
+    user = user[0];
+    if (user) {
+      if (user.Password == password) {
+        if (!user.Validated) {
+          sendValidationEmail(user.Email, user.ValidationToken);
+          reject("Verification email resent");
         }
-      );
-      user.JWTToken = token;
-      user.JWTIssued = new Date().toUTCString();
-      Users.updateOneUserJwt(user._id, user.JWTToken, user.JWTIssued).then(success => {
-        Users.getUsers().then(succ => {
-          let user = succ.filter(function(item) {
-            return item.Email == email;
-          })
-          user = user[0];
-          if (user) {
-            console.log("RETURNING", user);
-            return user;
-          } else {
-            throw new Error("???");
+        let token = jwt.sign({email: email},
+          config.secret,
+          { expiresIn: '24h' // expires in 24 hours
           }
-        }).catch(err => {
-          throw new Error(err);
-        })
-      }).catch(err => {
-        next(err);
-      })
-      return user;
-    } else if (user.Password == "") {
-      Users.setPWOneUser(user._id, password).then(succ1 => {
-        Users.getUsers().then(succ => {
-          let user = succ.filter(function(item) {
-            return item.Email == email;
+        );
+        user.JWTToken = token;
+        user.JWTIssued = new Date().toUTCString();
+        Users.updateOneUserJwt(user._id, user.JWTToken, user.JWTIssued).then(success => {
+          Users.getUsers().then(succ => {
+            let user = succ.filter(function(item) {
+              return item.Email == email;
+            })
+            user = user[0];
+            if (user) {
+              resolve(user);
+            } else {
+              reject("???");
+            }
+          }).catch(err => {
+            reject(err);
           })
-          user = user[0];
-          if (user) {
-            console.log("RETURNING", user);
-            return user;
-          } else {
-            throw new Error("???");
-          }
         }).catch(err => {
-          throw new Error(err);
+          reject(err);
         })
-      }).catch(err => {
-        throw new Error(err);
-      })
+        resolve(user);
+      } else if (user.Password == "") {
+        Users.setPWOneUser(user._id, password).then(succ1 => {
+          Users.getUsers().then(succ => {
+            let user = succ.filter(function(item) {
+              return item.Email == email;
+            })
+            user = user[0];
+            if (user) {
+              resolve(user);
+            } else {
+              reject("???");
+            }
+          }).catch(err => {
+            reject(err);
+          })
+        }).catch(err => {
+          reject(err);
+        })
+      } else {
+        reject("Unauthorized (incorrect email/password). Is this a Facebook account?");
+      }
     } else {
-      throw new Error("Unauthorized (incorrect email/password). Is this a Facebook account?");
+      reject("No corres. email found");
     }
-  } else {
-    throw new Error("No corres. email found");
-  }
+  })
 }
 
 const handleJWTLogin = (users, token) => {
@@ -197,9 +197,14 @@ router.post('/login', function(req, res, next) {
   Users.getUsers().then(success => {
     users = success;
     if (req.body.email && req.body.password) {
-      let result = handleUsernamePasswordLogin(users, req.body.email, req.body.password);
-      console.log("API RESULT" + result);
-      res.json(result);
+      handleUsernamePasswordLogin(users, req.body.email, req.body.password)
+      .then(succ => {
+        res.json(succ);
+      })
+      .catch(oops => {
+        res.statusCode = 401;
+        res.send(oops.toString());
+      });
     }
     else if (req.body.jwt) {
       let result = handleJWTLogin(users, req.body.jwt);
