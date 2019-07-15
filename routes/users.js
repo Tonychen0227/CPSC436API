@@ -266,6 +266,7 @@ router.post('/register', function(req, res, next) {
     users = success;
     let userJSON = checkRegUser(users, req.body.email, req.body.password);
     userJSON.DisplayName = req.body.displayName != '' ? req.body.displayName : userJSON.DisplayName;
+    userJSON.FavoriteTeam = req.body.favTeam;
     fetch.remote(defaultImage).then((data) => {
       userJSON.ProfileBase64 = data[1].split(',')[1];
       Users.insertUser(userJSON).then(success => {
