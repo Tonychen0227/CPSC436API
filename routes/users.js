@@ -358,6 +358,7 @@ router.post('/uploadProfile', function(req, res, next) {
 
 router.post('/fbLogin', function(req, res, next) {
   console.log(req.body);
+  console.log(req.headers);
   if (!req.body.email || !req.body.id || !req.body.token) {
     res.statusCode = 400;
     res.send("You must include email, id, token")
