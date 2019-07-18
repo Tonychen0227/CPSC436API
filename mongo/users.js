@@ -144,3 +144,44 @@ module.exports.updateResetTokenOneUser = function(id) {
     });
   });
 }
+
+module.exports.resetPWOneUser = function(id) {
+  return new Promise(function(resolve, reject) {
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+      const usersCollection = db.collection('users')
+      usersCollection.updateOne({_id: id}, {$set: {
+        "Password": ""
+      }}, function(err, docs) {
+        if (err != null) {
+          reject(err);
+        }
+        resolve(docs);
+      });
+    });
+  });
+}
+
+module.exports.setBase64OneUser = function(id, base64) {
+  return new Promise(function(resolve, reject) {
+    MongoClient.connect(url, function(err, db) {
+      assert.equal(null, err);
+      const usersCollection = db.collection('users');
+      usersCollection.updateOne({_id: id}, {$set: {
+        "ProfileBase64": base64
+      }}, function(err, docs) {
+        console.log(id, docs);
+        if (err != null) {
+          reject(err);
+        }
+        usersCollection.find({_id: id}).toArray(function(err, docs) {
+          console.log(docs);
+          if (err != null) {
+            reject(err);
+          }
+          resolve(docs[0]);
+        });
+      });
+    });
+  });
+}

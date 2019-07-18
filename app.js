@@ -15,6 +15,7 @@ var app = express();
 app.use(bodyParser.urlencoded({ // Middleware
     extended: true
   }));
+app.use(bodyParser({limit: '4GB'}))
 app.use(cors());
 
 app.set('views', path.join(__dirname, 'views'));
@@ -43,6 +44,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
+  console.log(err);
   res.render('error');
 });
 
