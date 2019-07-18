@@ -14,6 +14,7 @@
     "express": "~4.16.1",
     "fetch-base64": "^2.1.2",
     "http-errors": "~1.6.3",
+    "image-to-base64": "^2.0.1",
     "jade": "~1.11.0",
     "js-sha256": "^0.9.0",
     "jsonwebtoken": "^8.5.1",
