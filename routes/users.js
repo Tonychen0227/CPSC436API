@@ -288,8 +288,6 @@ router.post('/reset', function(req, res, next) {
     users = success;
     if (req.body.email) {
       let user = users.filter(function(item) {
-        console.log(item.Email == req.body.email);
-        console.log(item.Password != "Facebook");
         return item.Email == req.body.email && item.Password != "Facebook";
       })
       user = user[0];
@@ -321,10 +319,44 @@ router.post('/reset', function(req, res, next) {
   })
 })
 
+router.post('/updateDisplay', function(req, res, next) {
+  if (!req.body || !req.body.email || !req.body.password || !req.body.name || !req.body.team) {
+    res.statusCode = 500;
+    res.send("You must include email, password, name, team");
+    return;
+  }
+  if (req.body.name.length < 2 || req.body.name.length > 30) {
+    res.statusCode = 500;
+    res.send("Bad name");
+    return;
+  }
+  Users.getUsers().then(success => {
+    users = success;
+    let user = users.filter(function(item) {
+      return item.Email == req.body.email && item.Password == req.body.password;
+    })
+    if (user) {
+      user = user[0];
+      Users.setNameTeamOneUser(user._id, req.body.name, req.body.team).then(success => {
+          res.json(success);
+        }).catch(err => {
+          res.statusCode = 500;
+          res.send(err.toString());
+          return;
+      })
+    } else {
+      res.statusCode = 401;
+      res.send("No valid user");
+      return;
+    }
+  }).catch(err => {
+    res.statusCode = 401;
+    res.send(err.toString());
+  })
+})
+
 router.post('/uploadProfile', function(req, res, next) {
-  console.log(req.body.email, req.body.password, req.body.base64.length);
   if (!req.body || !req.body.email || !req.body.password || !req.body.base64) {
-    console.log(req.body.email, req.body.password, req.body.base64.length);
     res.statusCode = 500;
     res.send("You must include email, password, base64");
     return;
@@ -332,8 +364,6 @@ router.post('/uploadProfile', function(req, res, next) {
   Users.getUsers().then(success => {
     users = success;
     let user = users.filter(function(item) {
-      console.log(item.Email, req.body.email);
-      console.log(item.Password, req.body.password);
       return item.Email == req.body.email && item.Password == req.body.password;
     })
     if (user) {
@@ -398,11 +428,8 @@ router.post('/fbLogin', function(req, res, next) {
       axios.get(FBApi + req.body.id + '/?access_token=' + req.body.token)
       .then(response => {
         newUser.DisplayName = response.data.name;
-        console.log(response.data);
         axios.get(FBApi + req.body.id + FBApiPictureSuffix)
         .then(response => {
-          console.log(response.data.data.url)
-          //axios.get(response.data.data.url, {'Content-Type': 'image/jpeg'})
           image2base64(response.data.data.url)
           .then(result => {
             newUser.ProfileBase64 = result
