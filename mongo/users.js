@@ -16,6 +16,7 @@ MongoClient.connect(url, function(err, db) {
   database = db;
 
   usersCollection = db.collection('users');
+  db.close();
 });
 
 module.exports = {}
@@ -29,8 +30,10 @@ module.exports.getUsers = function() {
       usersCollection.find({}).toArray(function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(docs);
+        db.close();
       });
     });
   });
@@ -44,8 +47,10 @@ module.exports.insertUser = function(user) {
       usersCollection.insert(user, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(docs);
+        db.close();
       });
     });
   });
@@ -62,8 +67,10 @@ module.exports.updateOneUserJwt = function(id, jwt, jwtIssued) {
       }}, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(docs);
+        db.close();
       });
     });
   });
@@ -79,8 +86,10 @@ module.exports.validateOneUser = function(id) {
       }}, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(docs);
+        db.close();
       });
     });
   });
@@ -96,8 +105,10 @@ module.exports.resetPWOneUser = function(id) {
       }}, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(docs);
+        db.close();
       });
     });
   });
@@ -114,12 +125,15 @@ module.exports.setPWOneUser = function(id, password) {
       }}, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         usersCollection.find({_id: id}).toArray(function(err, docs) {
           if (err != null) {
             reject(err);
+            db.close();
           }
           resolve(docs);
+          db.close();
         });
       });
     });
@@ -138,8 +152,10 @@ module.exports.updateResetTokenOneUser = function(id) {
       }}, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(token);
+        db.close();
       });
     });
   });
@@ -155,8 +171,10 @@ module.exports.resetPWOneUser = function(id) {
       }}, function(err, docs) {
         if (err != null) {
           reject(err);
+          db.close();
         }
         resolve(docs);
+        db.close();
       });
     });
   });
@@ -173,13 +191,16 @@ module.exports.setBase64OneUser = function(id, base64) {
         console.log(id, docs);
         if (err != null) {
           reject(err);
+          db.close();
         }
         usersCollection.find({_id: id}).toArray(function(err, docs) {
           console.log(docs);
           if (err != null) {
             reject(err);
+            db.close();
           }
           resolve(docs[0]);
+          db.close();
         });
       });
     });
@@ -198,13 +219,16 @@ module.exports.setNameTeamOneUser = function(id, name, team) {
         console.log(id, docs);
         if (err != null) {
           reject(err);
+          db.close();
         }
         usersCollection.find({_id: id}).toArray(function(err, docs) {
           console.log(docs);
           if (err != null) {
             reject(err);
+            db.close();
           }
           resolve(docs[0]);
+          db.close();
         });
       });
     });

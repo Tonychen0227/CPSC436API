@@ -14,7 +14,8 @@ MongoClient.connect(url, function(err, db) {
 
   database = db
 
-  usersCollection = db.collection('teams')
+  teamsCollection = db.collection('teams')
+  db.close();
 });
 
 module.exports = {}
@@ -24,12 +25,14 @@ module.exports.getTeams = function() {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
 
-      const usersCollection = db.collection('teams')
-      usersCollection.find({}).toArray(function(err, docs) {
+      const teamsCollection = db.collection('teams');
+      teamsCollection.find({}).toArray(function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
+          db.close();
         }
-        resolve(docs)
+        resolve(docs);
+        db.close();
       });
     });
   });

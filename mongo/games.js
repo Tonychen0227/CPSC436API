@@ -12,9 +12,10 @@ MongoClient.connect(url, function(err, db) {
   assert.equal(null, err);
   console.log("Connected successfully to server");
 
-  database = db
+  database = db;
 
-  usersCollection = db.collection('games')
+  gamesCollection = db.collection('games');
+  db.close();
 });
 
 module.exports = {}
@@ -24,12 +25,14 @@ module.exports.getGames = function() {
     MongoClient.connect(url, function(err, db) {
       assert.equal(null, err);
 
-      const usersCollection = db.collection('games')
-      usersCollection.find({}).toArray(function(err, docs) {
+      const gamesCollection = db.collection('games')
+      gamesCollection.find({}).toArray(function(err, docs) {
         if (err != null) {
-          reject(err)
+          reject(err);
+          db.close();
         }
-        resolve(docs)
+        resolve(docs);
+        db.close();
       });
     });
   });
