@@ -29,7 +29,7 @@ module.exports.getPosts = function() {
       assert.equal(null, err);
 
       const postsCollection = db.collection('posts');
-      postsCollection.find({}).toArray(function(err, docs) {
+      postsCollection.find({}).sort( { postedDate: 1 } ).toArray(function(err, docs) {
         if (err != null) {
           reject(err);
           db.close();
@@ -47,7 +47,7 @@ module.exports.getPost = function(id) {
       assert.equal(null, err);
 
       const postsCollection = db.collection('posts');
-      postsCollection.find({}).toArray(function(err, docs) {
+      postsCollection.find({}).sort( { postedDate: 1 } ).toArray(function(err, docs) {
         if (err != null) {
           reject(err);
           db.close();
@@ -77,7 +77,7 @@ module.exports.insertPost = function(postTitle, postBody, userId, userName) {
           reject(err);
           db.close();
         }
-        postsCollection.find({}).toArray(function(err, docs) {
+        postsCollection.find({}).sort( { postedDate: 1 } ).toArray(function(err, docs) {
           resolve(docs);
         });
         db.close();
