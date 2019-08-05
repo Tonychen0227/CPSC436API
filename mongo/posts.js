@@ -143,7 +143,6 @@ module.exports.editComment = function(id, commentId, body, userId) {
             db.close();
           }
           postsCollection.find({_id: ObjectId(id)}).toArray(function(err, docs) {
-            console.log(err);
             resolve(docs[0]);
             db.close();
           });
