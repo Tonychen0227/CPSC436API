@@ -66,7 +66,7 @@ router.post('/:id', function(req, res, next) {
       throw new Error("No body supplied");
     }
     if (!req.body.body || req.body.body.length < 10) {
-      throw new Error("No comment body supplied or title is less than 10 characters");
+      throw new Error("No comment body supplied or content is less than 10 characters");
     }
     if (req.body.token) {
       const user = users.filter(x => x.JWTToken == req.body.token)[0];
