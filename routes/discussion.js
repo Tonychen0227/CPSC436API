@@ -24,8 +24,8 @@ router.post('/', function(req, res, next) {
     if (!req.body) {
       throw new Error("No body supplied");
     }
-    if (!req.body.title || req.body.title.length < 10) {
-      throw new Error("No title supplied or title is less than 10 characters");
+    if (!req.body.title || req.body.title.length < 10 || req.body.title.length > 75) {
+      throw new Error("No title supplied or title is less than 10 characters or larger than 50");
     }
     if (!req.body.body) {
       req.body.body = "";
