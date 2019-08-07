@@ -411,10 +411,15 @@ router.post('/fbLogin', function(req, res, next) {
         res.json(userEmail);
         return;
       }
+      let token = jwt.sign({username: req.body.email},
+        config.secret,
+        { expiresIn: '24h' // expires in 24 hours
+        }
+      );
       let newUser = {
         "Email": req.body.email,
         "Password": "Facebook",
-        "JWTToken": "No token for facebook users",
+        "JWTToken": token,
         "JWTIssued": new Date().toUTCString(),
         "FavoriteTeam": "raptors",
         "AccountCreated": new Date().toLocaleDateString(),
