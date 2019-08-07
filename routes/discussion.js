@@ -30,8 +30,8 @@ router.post('/', function(req, res, next) {
     if (!req.body.body) {
       req.body.body = "";
     }
-    if (req.body.token) {
-      const user = users.filter(x => x.JWTToken == req.body.token)[0];
+    if (req.body.token && req.body.email) {
+      const user = users.filter(x => x.JWTToken == req.body.token && x.Email == req.body.email)[0];
       Posts.insertPost(req.body.title, req.body.body, user._id, user.DisplayName)
       .then(succ => {
         res.json(succ);
